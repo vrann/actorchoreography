@@ -1,0 +1,144 @@
+/*
+0,0; 0,1; 0,2
+1,0; 1,1; 1,2
+2,0; 2,1; 2,2
+*/
+
+{
+  "topology": {
+    "instances": [
+      {
+        "processes": {
+          "data-diagonal": {
+            "actors": [
+              {
+                "name": "data-diagonal-1column",
+                "params": [
+                  {
+                    "cell": "(0,0)"
+                  }
+                ]
+              },
+              //0,0 -- init data ready;
+              {
+                "name": "data-subdiagonal-1column",
+                "params": [
+                  {
+                    "cell": "(1,0)"
+                  }
+                ]
+              },
+              //l11 for 0,0 ready
+              {
+                "name": "data-diagonal",
+                "params": [
+                  {
+                    "cell": "(1,1)"
+                  }
+                ]
+              },
+              //l21 for 1,0 ready
+              {
+                "name": "data-subdiagonal",
+                "params": [
+                  {
+                    "cell": "(2,1)"
+                  }
+                ]
+              },
+              //l21 for 2,0 ready; l11 for 1,1 ready
+              {
+                "name": "data-diagonal",
+                "params": [
+                  {
+                    "cell": "(2,2)"
+                  }
+                ]
+              }
+              //l21 for 2,1 ready
+            ]
+          },
+          "compute-diagonal": {
+            "actors": [
+              {
+                "name": "diagonal0",
+                "params": [
+                  {
+                    "cell": "(0,0)"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "processes": {
+          "data-subdiagonal": {
+            "actors": [
+              {
+                "name": "data",
+                "params": [
+                  {
+                    "cell": "(2,0)"
+                  }
+                ]
+              }
+              //l11 for 0,0 ready;
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "actors": [
+    {
+      "name": "diagonal0",
+      "states": [
+        {
+          "name": "start",
+          "subscribe": "%cell%channel",
+          "waiting": ["init00dataReady"],
+          "action": "l11calculate",
+          "result": {
+            "success": {"publish": "l11ready"}
+          }
+        }
+      ]
+    },
+    {
+      "name": "l11data",
+      "states": [
+        {
+          "name": "start",
+          "waiting": ["init00dataReady"],
+          "action": "l11calculate",
+          "result": {
+            "success": {"publish": "l11ready"}
+          }
+        }
+      ]
+    },
+    {
+      "name": "diagonal-other"
+    },
+    {
+      "name": "other"
+    },
+    {
+      "state": {
+        "name": "test",
+        "waiting": ["m1", "m2"],
+        "action": "l1calculate",
+        "result": {
+          "success": {"publish": "m3"},
+          "failure": {"state": "failed"}
+        }
+      }
+    }
+  ],
+  "blocks": {
+    "data": [],
+    "operations": []
+  }
+}

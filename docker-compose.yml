@@ -1,0 +1,91 @@
+version: '3'
+services:
+# l11-dialogue:
+#   build:
+#     context: ./
+#     dockerfile: l11dialogue/Dockerfile
+#   ports:
+#   - '5151:5151'
+#   - '8080:8080'
+#   environment:
+#     SEED1: l11-dialogue
+#     SEED2: l11
+#     HOST: l11-dialogue
+# l11:
+#   build:
+#     context: ./
+#     dockerfile: l11/Dockerfile
+#   ports:
+#   - '5150:5150'
+#   environment:
+#     SEED1: l11-dialogue
+#     SEED2: l11
+#     HOST: l11
+# l21firstcolumn:
+#   build:
+#     context: ./
+#     dockerfile: l21firstcolumn/Dockerfile
+#   ports:
+#   - '5149:5149'
+#   environment:
+#     SEED1: l11-dialogue
+#     SEED2: l11
+#     HOST: l21firstcolumn
+#   depends_on:
+#     - l11
+#     - l11-dialogue
+
+ topology:
+   build:
+     context: ./
+     dockerfile: topology/Dockerfile
+   volumes:
+   - ./node1:/root/.actorchoreography
+   - ./node1/node1.conf:/root/.actorchoreography/node.conf
+   ports:
+   - '5149:5149'
+   - '4000:2000'
+   environment:
+     HOST: topology
+     PORT: 5149
+     SEED1: topology
+     SEED1_PORT: 5149
+
+ topology1:
+   build:
+     context: ./
+     dockerfile: topology/Dockerfile
+   volumes:
+   - ./node2:/root/.actorchoreography
+   - ./node2/node2.conf:/root/.actorchoreography/node.conf
+   - ./node2/example.csv:/root/.actorchoreography/example.csv
+   - ./node2/H.data:/root/.actorchoreography/H.data
+   - ./node2/2_61-Cycl.den:/root/.actorchoreography/2_61-Cycl.den
+   ports:
+   - '5150:5150'
+   - '4001:2000'
+   environment:
+     HOST: topology1
+     PORT: 5150
+     SEED1: topology
+     SEED1_PORT: 5149
+   depends_on:
+   - topology
+
+ topology2:
+   build:
+     context: ./
+     dockerfile: topology/Dockerfile
+   volumes:
+   - ./node3:/root/.actorchoreography
+   - ./node3/node3.conf:/root/.actorchoreography/node.conf
+   ports:
+   - '5151:5151'
+   - '4002:2000'
+   environment:
+     HOST: topology2
+     PORT: 5151
+     SEED1: topology
+     SEED1_PORT: 5149
+   depends_on:
+   - topology
