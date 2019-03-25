@@ -40,7 +40,11 @@ public class FirstBlockElement implements BlockElement {
 
     public List<String> getSubscriptions()
     {
-        return Arrays.asList(new String[]{"A11.first.ready", "logs"});
+        return Arrays.asList(new String[]{
+                "A11.first.ready",
+                "logs",
+                String.format("data-ready-%d-%d", position.getX(), position.getY())
+        });
     }
 
     @Override
@@ -64,29 +68,19 @@ public class FirstBlockElement implements BlockElement {
 
 
                 //mediator.tell(new DistributedPubSubMediator.Publish("L11.ready", "L11.ready"), getSelf());
-            } else if (s.equals("logs")) {
-                log.info("Logs request sent");
-                //sourceActor.tell(new RequestLogs(1337), ActorRef.noSender());
-                mediator.tell(new DistributedPubSubMediator.Publish("logs-1", new RequestLogs(1337)), selfReference.getSelfInstance());
-                log.info("Logs request received");
             }
             log.info("Received String message: {}", s);
+        }).match(FileTransferReady.class, message -> {
+            mediator.tell(new DistributedPubSubMediator.Publish(String.format("request-file-transfer-%d", message.sectionId), new RequestFileTransfer(message.fileName, message.sectionId)), selfReference.getSelfInstance());
         })
-        .match(LogsOffer.class, msg -> {
+        .match(FileTransfer.class, message -> {
             StringBuilder pathBuilder = (new StringBuilder())
                     .append(System.getProperty("user.home"))
-                    .append("/.actorchoreography/H-received.data");
+                    .append("/.actorchoreography/")
+                    .append(message.fileName);
             final Path file = Paths.get(pathBuilder.toString());
             Sink<ByteString, CompletionStage<IOResult>> fileSink = FileIO.toPath(file);
-            msg.sourceRef.getSource().runWith(fileSink, materializer);
-            log.info("Transfer completed");
-            //msg.sourceRef.getSource().runWith(Sink.foreach(logitem -> System.out.println(logitem)), materializer);
-        })
-        .match(RequestLogs.class, msg -> {
-            log.info("Logs request sent");
-            //sourceActor.tell(new RequestLogs(1337), ActorRef.noSender());
-            mediator.tell(new DistributedPubSubMediator.Publish("logs-1", new RequestLogs(1337)), selfReference.getSelfInstance());
-            log.info("Logs request received");
+            message.sourceRef.getSource().runWith(fileSink, materializer);
         })
         .match(DistributedPubSubMediator.SubscribeAck.class, msg -> log.info("subscribed    "))
         .matchAny(o -> log.info("received unknown message {}", o.getClass()))

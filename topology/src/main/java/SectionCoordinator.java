@@ -42,8 +42,7 @@ public class SectionCoordinator {
         for (Position pos: sectionPositions) {
             log.info("Starting actor for {}", pos);
             BlockElement element = elementFactory.createBlockElement(pos);
-            ActorRef block = actorSystem.actorOf(
-                        BlockActor.props(element), element.getName());
+            ActorRef block = actorSystem.actorOf(BlockActor.props(element), element.getName());
         }
 
     }
